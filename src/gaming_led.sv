@@ -6,15 +6,15 @@ module gaming_led (
   
   // Color phase clock
   logic [23:0] rPHASE_CLK;
-  always_ff @(posedge iCLOCK or negedge iRESET_n) begin
+  always_ff @( posedge iCLOCK or negedge iRESET_n ) begin
     if (!iRESET_n)
     rPHASE_CLK <= 0;
-    else if (rPHASE_CLK < 24'd06_0000)
+    else if (rPHASE_CLK < 24'd6_0000)
     rPHASE_CLK <= rPHASE_CLK+1;
     else
-    rPHASE_CLK <= 24'd0;
+    rPHASE_CLK <= 0;
   end
-
+  
   // Color phase
   logic [10:0] rR_PHASE = 256*0;
   logic [10:0] rG_PHASE = 256*2;
@@ -34,56 +34,28 @@ module gaming_led (
       rB_PHASE <= rB_PHASE;
     end
   end
-
+  
   // Color transition
-  logic signed [10:0] wR_DIFF;
   logic signed [10:0] wR;
-  assign wR_DIFF = 512-rR_PHASE;
-  assign wR = 512 - ((wR_DIFF >= 0) ? wR_DIFF : -wR_DIFF);
-  logic signed [10:0] wG_DIFF;
+  assign wR = 512 - ((512-rR_PHASE >= 0) ? 512-rR_PHASE : -(512-rR_PHASE));
   logic signed [10:0] wG;
-  assign wG_DIFF = 512-rG_PHASE;
-  assign wG = 512 - ((wG_DIFF >= 0) ? wG_DIFF : -wG_DIFF);
-  logic signed [10:0] wB_DIFF;
+  assign wG = 512 - ((512-rG_PHASE >= 0) ? 512-rG_PHASE : -(512-rG_PHASE));
   logic signed [10:0] wB;
-  assign wB_DIFF = 512-rB_PHASE;
-  assign wB = 512 - ((wB_DIFF >= 0) ? wB_DIFF : -wB_DIFF);
-
+  assign wB = 512 - ((512-rB_PHASE >= 0) ? 512-rB_PHASE : -(512-rB_PHASE));
+  
   // RGB intensities
-  logic [7:0] rPWM_R = 0;
-  logic [7:0] rPWM_G = 0;
-  logic [7:0] rPWM_B = 0;
-  always_ff @( posedge iCLOCK) begin
-    if (wR>255) begin
-      rPWM_R <= 255;
-    end else if (wR<0) begin
-      rPWM_R <= 0;
-    end else begin
-      rPWM_R <= wR[7:0];
-    end
-    
-    if (wG>255) begin
-      rPWM_G <= 255;
-    end else if (wG<0) begin
-      rPWM_G <= 0;
-    end else begin
-      rPWM_G <= wG[7:0];
-    end
-    
-    if (wB>255) begin
-      rPWM_B <= 255;
-    end else if (wB<0) begin
-      rPWM_B <= 0;
-    end else begin
-      rPWM_B <= wB[7:0];
-    end
+  logic [7:0] rPWM_R, rPWM_G, rPWM_B;
+  always_ff @( posedge iCLOCK ) begin
+    rPWM_R <= (wR>255) ? 255 : (wR<0) ? 0 : wR[7:0];
+    rPWM_G <= (wG>255) ? 255 : (wG<0) ? 0 : wG[7:0];
+    rPWM_B <= (wB>255) ? 255 : (wB<0) ? 0 : wB[7:0];
   end
-
+  
   // RGB LED out with PWM
   logic [7:0] rPWM_CNT;
-  always_ff @(posedge iCLOCK or negedge iRESET_n) begin
+  always_ff @( posedge iCLOCK or negedge iRESET_n ) begin
     if (!iRESET_n)
-    rPWM_CNT <= 8'd0;
+    rPWM_CNT <= 0;
     else 
     rPWM_CNT <= rPWM_CNT+1;
   end
@@ -91,5 +63,5 @@ module gaming_led (
   assign oLED[2] = (rPWM_CNT <= (rPWM_R>>1)) ? 1'b0 : 1'b1;
   assign oLED[1] = (rPWM_CNT <= (rPWM_G>>3)) ? 1'b0 : 1'b1;
   assign oLED[0] = (rPWM_CNT <= rPWM_B) ? 1'b0 : 1'b1;
- 
+  
 endmodule
