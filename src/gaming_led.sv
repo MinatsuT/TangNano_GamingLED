@@ -9,7 +9,7 @@ module gaming_led (
   always_ff @( posedge iCLOCK or negedge iRESET_n ) begin
     if (!iRESET_n)
     rPHASE_CLK <= 0;
-    else if (rPHASE_CLK < 24'd6_0000)
+    else if (rPHASE_CLK < 24'd24_0000)
     rPHASE_CLK <= rPHASE_CLK+1;
     else
     rPHASE_CLK <= 0;
@@ -37,11 +37,17 @@ module gaming_led (
   
   // Color transition
   logic signed [10:0] wR;
-  assign wR = 512 - ((512-rR_PHASE >= 0) ? 512-rR_PHASE : -(512-rR_PHASE));
+  logic signed [10:0] wR_DIFF;
+  assign wR_DIFF = 512-rR_PHASE;
+  assign wR = 512-((wR_DIFF>=0) ? wR_DIFF : -wR_DIFF);
   logic signed [10:0] wG;
-  assign wG = 512 - ((512-rG_PHASE >= 0) ? 512-rG_PHASE : -(512-rG_PHASE));
+  logic signed [10:0] wG_DIFF;
+  assign wG_DIFF = 512-rG_PHASE;
+  assign wG = 512-((wG_DIFF>=0) ? wG_DIFF : -wG_DIFF);
   logic signed [10:0] wB;
-  assign wB = 512 - ((512-rB_PHASE >= 0) ? 512-rB_PHASE : -(512-rB_PHASE));
+  logic signed [10:0] wB_DIFF;
+  assign wB_DIFF = 512-rB_PHASE;
+  assign wB = 512-((wB_DIFF>=0) ? wB_DIFF : -wB_DIFF);
   
   // RGB intensities
   logic [7:0] rPWM_R, rPWM_G, rPWM_B;
